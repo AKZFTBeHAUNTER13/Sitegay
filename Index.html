@@ -3,165 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leitor de Arquivos de Texto Moderno</title>
+    <title>Leitor de Arquivos</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #222;
-            color: #eee;
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #fff;
             text-align: center;
             margin: 0;
             padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
         }
-
-        h1 {
-            color: #64b5f6;
-            margin-bottom: 20px;
-            text-shadow: 0 0 10px rgba(100, 181, 246, 0.7);
+        h2 {
+            color: #9b59b6;
         }
-
         .container {
-            background-color: #333;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
-            width: 90%;
-            max-width: 700px;
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 600px;
+            margin: auto;
+            box-shadow: 0 0 15px rgba(155, 89, 182, 0.5);
         }
-
-        label.custom-file-upload {
-            background-color: #64b5f6;
-            color: #fff;
-            padding: 12px 25px;
-            border-radius: 8px;
-            cursor: pointer;
-            display: inline-block;
-            font-size: 18px;
-            transition: background-color 0.3s ease;
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
-        }
-
-        label.custom-file-upload:hover {
-            background-color: #42a5f5;
-        }
-
         input[type="file"] {
             display: none;
         }
-
+        .custom-file-upload {
+            background: #9b59b6;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: inline-block;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+        .custom-file-upload:hover {
+            background: #8e44ad;
+        }
         textarea {
             width: 100%;
-            height: 300px;
-            margin-top: 25px;
-            padding: 15px;
+            height: 200px;
+            margin-top: 15px;
+            padding: 10px;
             font-size: 16px;
-            background-color: #444;
-            color: #eee;
+            background: #2c2c2c;
+            color: white;
             border: none;
-            border-radius: 10px;
-            resize: vertical;
-            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.3);
-            outline: none;
-            line-height: 1.6;
+            border-radius: 5px;
+            resize: none;
         }
-
-        .buttons-container {
-            margin-top: 20px;
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-        }
-
-        button {
-            background-color: #64b5f6;
-            color: #fff;
-            padding: 12px 25px;
+        .btn {
+            background: #9b59b6;
+            color: white;
+            padding: 10px 15px;
             border: none;
-            border-radius: 8px;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 18px;
-            transition: background-color 0.3s ease, transform 0.2s;
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+            font-size: 16px;
+            margin-top: 10px;
+            transition: transform 0.2s ease, background 0.3s;
         }
-
-        button:hover {
-            background-color: #42a5f5;
+        .btn:hover {
+            background: #8e44ad;
         }
-
-        button:active {
+        .btn:active {
             transform: scale(0.95);
         }
-
-        #status-message {
+        .fade {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        #fileList {
             margin-top: 20px;
-            font-size: 16px;
-            color: #8bc34a;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            text-align: left;
+        }
+        #fileList a {
+            color: #9b59b6;
+            text-decoration: none;
+            display: block;
+            padding: 5px 0;
+            transition: color 0.3s;
+        }
+        #fileList a:hover {
+            color: #8e44ad;
         }
 
-        #status-message.show {
-            opacity: 1;
+        #fileContentContainer {
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
 
-    <h1>Leitor de Arquivos de Texto</h1>
+    <h2>Leitor de Arquivos de Texto</h2>
 
-    <div class="container">
-        <label for="fileInput" class="custom-file-upload">
-            Selecionar Arquivo de Texto
-        </label>
-        <input type="file" id="fileInput" accept=".txt">
+    <div class="container fade">
+        <label for="folderInput" class="custom-file-upload">Selecionar Pasta</label>
+        <input type="file" id="folderInput" webkitdirectory directory multiple>
 
-        <textarea id="textBox" placeholder="Conteúdo do arquivo aparecerá aqui..." readonly></textarea>
-
-        <div class="buttons-container">
-            <button onclick="copyText()">Copiar Texto</button>
-            <button onclick="clearText()">Limpar Texto</button>
+        <div id="fileList">
+            <!-- Arquivos serão listados aqui -->
         </div>
 
-        <div id="status-message"></div>
+        <div id="fileContentContainer" style="display: none;">
+            <h2>Conteúdo do Arquivo</h2>
+            <textarea id="fileContent" readonly></textarea>
+            <button class="btn" onclick="copyText()">Copiar Texto</button>
+        </div>
     </div>
 
     <script>
-        const fileInput = document.getElementById('fileInput');
-        const textBox = document.getElementById('textBox');
-        const statusMessage = document.getElementById('status-message');
+        const folderInput = document.getElementById('folderInput');
+        const fileListDiv = document.getElementById('fileList');
+        const fileContentContainer = document.getElementById('fileContentContainer');
+        const fileContentTextarea = document.getElementById('fileContent');
 
-        fileInput.addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    textBox.value = e.target.result;
-                };
-                reader.readAsText(file);
+        folderInput.addEventListener('change', function(event) {
+            const files = event.target.files;
+            fileListDiv.innerHTML = ''; // Limpa a lista anterior
+            fileContentContainer.style.display = 'none'; //Esconde a área de conteúdo
+
+            if (files.length > 0) {
+                const fileLinks = [];
+
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    if (file.name.endsWith('.txt')) {
+                        const fileLink = document.createElement('a');
+                        fileLink.href = '#';
+                        fileLink.textContent = file.name;
+                        fileLink.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            loadFileContent(file);
+                        });
+                        fileLinks.push(fileLink);
+                    }
+                }
+
+                if(fileLinks.length > 0){
+                    fileLinks.forEach(link => fileListDiv.appendChild(link));
+                } else {
+                    fileListDiv.innerHTML = "<p>Nenhum arquivo .txt encontrado na pasta.</p>";
+                }
+
             }
         });
 
+
+        function loadFileContent(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                fileContentTextarea.value = e.target.result;
+                fileContentContainer.style.display = 'block';
+            };
+            reader.readAsText(file);
+        }
+
         function copyText() {
+            const textBox = document.getElementById('fileContent');
             textBox.select();
             document.execCommand('copy');
-            showMessage("Texto copiado para a área de transferência!");
-        }
 
-        function clearText() {
-            textBox.value = '';
-            showMessage("Texto limpo!");
-        }
-
-        function showMessage(message) {
-            statusMessage.textContent = message;
-            statusMessage.classList.add('show');
-            setTimeout(() => {
-                statusMessage.classList.remove('show');
-            }, 3000);
+            const btn = document.querySelector('.btn');
+            btn.innerText = "Copiado!";
+            setTimeout(() => btn.innerText = "Copiar Texto", 1500);
         }
     </script>
 
