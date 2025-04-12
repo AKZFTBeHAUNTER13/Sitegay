@@ -12,22 +12,88 @@
             text-align: center;
             margin: 0;
             padding: 20px;
+            overflow-x: hidden;
         }
+
         h2 {
             color: #9b59b6;
         }
+
+        /* Estilos para a barra lateral */
+        .sidebar {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: 1;
+            top: 0;
+            left: 0;
+            background-color: #1e1e1e;
+            overflow-x: hidden;
+            transition: 0.5s;
+            padding-top: 60px;
+            text-align: left;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar a {
+            padding: 8px 8px 8px 32px;
+            text-decoration: none;
+            font-size: 18px;
+            color: #818181;
+            display: block;
+            transition: 0.3s;
+        }
+
+        .sidebar a:hover {
+            color: #f1f1f1;
+        }
+
+        .sidebar .closebtn {
+            position: absolute;
+            top: 0;
+            right: 25px;
+            font-size: 36px;
+            margin-left: 50px;
+            color: white;
+        }
+
+        /* Estilo para o botão de abrir a barra lateral */
+        .openbtn {
+            font-size: 20px;
+            cursor: pointer;
+            background-color: #1e1e1e;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            transition: background-color 0.3s;
+        }
+
+        .openbtn:hover {
+            background-color: #333;
+        }
+
+        #main {
+            transition: margin-left .5s;
+            padding: 16px;
+        }
+
+        /* Estilos para o container principal */
         .container {
             background: #1e1e1e;
             padding: 20px;
             border-radius: 10px;
             width: 80%;
-            max-width: 600px;
-            margin: auto;
+            max-width: 900px; /* Aumenta o tamanho do container */
+            margin: 20px auto;
             box-shadow: 0 0 15px rgba(155, 89, 182, 0.5);
         }
+
         input[type="file"] {
             display: none;
         }
+
         .custom-file-upload {
             background: #9b59b6;
             color: white;
@@ -38,12 +104,14 @@
             font-size: 16px;
             transition: 0.3s;
         }
+
         .custom-file-upload:hover {
             background: #8e44ad;
         }
+
         textarea {
             width: 100%;
-            height: 200px;
+            height: 300px; /* Aumenta a altura do textarea */
             margin-top: 15px;
             padding: 10px;
             font-size: 16px;
@@ -53,6 +121,7 @@
             border-radius: 5px;
             resize: none;
         }
+
         .btn {
             background: #9b59b6;
             color: white;
@@ -64,101 +133,156 @@
             margin-top: 10px;
             transition: transform 0.2s ease, background 0.3s;
         }
+
         .btn:hover {
             background: #8e44ad;
         }
+
         .btn:active {
             transform: scale(0.95);
         }
+
         .fade {
             animation: fadeIn 0.3s ease-in-out;
         }
+
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
         }
+
+        /* Estilos para a lista de arquivos */
         #fileList {
             margin-top: 20px;
             text-align: left;
-        }
-        #fileList a {
-            color: #9b59b6;
-            text-decoration: none;
-            display: block;
-            padding: 5px 0;
-            transition: color 0.3s;
-        }
-        #fileList a:hover {
-            color: #8e44ad;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
-        #fileContentContainer {
+        .file-item {
+            background-color: #2c2c2c;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            flex: 1 1 150px; /* Tamanho mínimo de 150px, flexível */
+            text-align: center;
+            color: white;
+            text-decoration: none;
+            min-width: 150px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .file-item:hover {
+            background-color: #3d3d3d;
+            transform: translateY(-3px);
+        }
+
+        /* Estilos para a visualização do arquivo */
+        #fileViewer {
+            display: none;
             margin-top: 20px;
+        }
+         #fileViewer h3 {
+            color: #9b59b6;
+            margin-bottom: 10px;
+        }
+
+        /* Cor roxa para links */
+        a {
+            color: #9b59b6;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        a:hover {
+            color: #8e44ad;
         }
     </style>
 </head>
 <body>
 
-    <h2>Leitor de Arquivos de Texto</h2>
+    <div id="mySidebar" class="sidebar">
+        <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
+        <a href="#" onclick="showSection('folderSection')">Pasta de Arquivos</a>
+    </div>
 
-    <div class="container fade">
-        <label for="folderInput" class="custom-file-upload">Selecionar Pasta</label>
-        <input type="file" id="folderInput" webkitdirectory directory multiple>
+    <div id="main">
+        <button class="openbtn" onclick="openNav()">☰ Abrir Menu</button>
+        <h2>Leitor de Arquivos de Texto</h2>
 
-        <div id="fileList">
-            <!-- Arquivos serão listados aqui -->
-        </div>
+        <section id="folderSection">
+            <div class="container fade">
+                <h3>Selecione a Pasta</h3>
+                <label for="folderInput" class="custom-file-upload">Selecionar Pasta</label>
+                <input type="file" id="folderInput" webkitdirectory directory multiple>
 
-        <div id="fileContentContainer" style="display: none;">
-            <h2>Conteúdo do Arquivo</h2>
+                <div id="fileList">
+                    <!-- Arquivos serão listados aqui -->
+                </div>
+            </div>
+        </section>
+
+        <section id="fileViewer" class="container fade">
+            <h3>Conteúdo do Arquivo</h3>
             <textarea id="fileContent" readonly></textarea>
             <button class="btn" onclick="copyText()">Copiar Texto</button>
-        </div>
+        </section>
     </div>
 
     <script>
+        function openNav() {
+            document.getElementById("mySidebar").style.width = "250px";
+            document.getElementById("main").style.marginLeft = "250px";
+        }
+
+        function closeNav() {
+            document.getElementById("mySidebar").style.width = "0";
+            document.getElementById("main").style.marginLeft= "0";
+        }
+
+        function showSection(sectionId) {
+            const sections = document.querySelectorAll('section');
+            sections.forEach(section => section.style.display = 'none');
+
+            document.getElementById(sectionId).style.display = 'block';
+        }
+
         const folderInput = document.getElementById('folderInput');
         const fileListDiv = document.getElementById('fileList');
-        const fileContentContainer = document.getElementById('fileContentContainer');
+        const fileViewerSection = document.getElementById('fileViewer');
         const fileContentTextarea = document.getElementById('fileContent');
 
         folderInput.addEventListener('change', function(event) {
             const files = event.target.files;
-            fileListDiv.innerHTML = ''; // Limpa a lista anterior
-            fileContentContainer.style.display = 'none'; //Esconde a área de conteúdo
+            fileListDiv.innerHTML = '';
+            fileViewerSection.style.display = 'none';
 
             if (files.length > 0) {
-                const fileLinks = [];
-
                 for (let i = 0; i < files.length; i++) {
                     const file = files[i];
                     if (file.name.endsWith('.txt')) {
-                        const fileLink = document.createElement('a');
-                        fileLink.href = '#';
-                        fileLink.textContent = file.name;
-                        fileLink.addEventListener('click', (e) => {
-                            e.preventDefault();
+                        const fileItem = document.createElement('a');
+                        fileItem.classList.add('file-item');
+                        fileItem.textContent = file.name;
+                        fileItem.href = "#";  // Prevent page from jumping to top
+                        fileItem.addEventListener('click', function(e) {
+                            e.preventDefault(); // Prevent default anchor behavior
                             loadFileContent(file);
                         });
-                        fileLinks.push(fileLink);
+                        fileListDiv.appendChild(fileItem);
                     }
                 }
-
-                if(fileLinks.length > 0){
-                    fileLinks.forEach(link => fileListDiv.appendChild(link));
-                } else {
-                    fileListDiv.innerHTML = "<p>Nenhum arquivo .txt encontrado na pasta.</p>";
-                }
-
             }
         });
-
 
         function loadFileContent(file) {
             const reader = new FileReader();
             reader.onload = function(e) {
                 fileContentTextarea.value = e.target.result;
-                fileContentContainer.style.display = 'block';
+                fileViewerSection.style.display = 'block';
+                window.scrollTo({ top: fileViewerSection.offsetTop, behavior: 'smooth' }); // Scroll to section
             };
             reader.readAsText(file);
         }
@@ -168,7 +292,7 @@
             textBox.select();
             document.execCommand('copy');
 
-            const btn = document.querySelector('.btn');
+            const btn = document.querySelector('#fileViewer .btn');
             btn.innerText = "Copiado!";
             setTimeout(() => btn.innerText = "Copiar Texto", 1500);
         }
