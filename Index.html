@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leitor de Arquivo</title>
+    <title>Leitor de Arquivos ZIP</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -21,7 +21,7 @@
             padding: 20px;
             border-radius: 10px;
             width: 80%;
-            max-width: 500px;
+            max-width: 600px;
             margin: auto;
             box-shadow: 0 0 15px rgba(155, 89, 182, 0.5);
         }
@@ -40,6 +40,44 @@
         }
         .custom-file-upload:hover {
             background: #8e44ad;
+        }
+        #password-container {
+            margin-top: 15px;
+        }
+        #password-container input[type="password"] {
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background: #2c2c2c;
+            color: white;
+        }
+        #password-container button {
+            background: #3498db;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-left: 10px;
+        }
+        #file-list {
+            margin-top: 20px;
+            text-align: left;
+        }
+        #file-list ul {
+            list-style: none;
+            padding: 0;
+        }
+        #file-list li {
+            padding: 10px;
+            border-bottom: 1px solid #333;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        #file-list li:hover {
+            background-color: #2c2c2c;
         }
         textarea {
             width: 100%;
@@ -77,29 +115,111 @@
             from { opacity: 0; }
             to { opacity: 1; }
         }
+        #file-content-container {
+            margin-top: 20px;
+            text-align: left;
+        }
+
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
 </head>
 <body>
 
-    <h2>Enviar Arquivo de Texto</h2>
+    <h2>Leitor de Arquivos ZIP</h2>
     <div class="container fade">
-        <label for="fileInput" class="custom-file-upload">Selecionar Arquivo</label>
-        <input type="file" id="fileInput" accept=".txt">
-        <textarea id="textBox" readonly></textarea>
-        <button class="btn" onclick="copyText()">Copiar Texto</button>
+        <label for="fileInput" class="custom-file-upload">Selecionar Arquivo ZIP</label>
+        <input type="file" id="fileInput" accept=".zip">
+
+        <div id="password-container" style="display: none;">
+            <input type="password" id="password" placeholder="Senha (se necessário)">
+            <button onclick="processZip()">Abrir ZIP</button>
+        </div>
+
+        <div id="file-list" style="display: none;">
+            <h3>Arquivos no ZIP:</h3>
+            <ul></ul>
+        </div>
+
+        <div id="file-content-container" style="display: none;">
+            <h3>Conteúdo do Arquivo:</h3>
+            <textarea id="textBox" readonly></textarea>
+            <button class="btn" onclick="copyText()">Copiar Texto</button>
+        </div>
     </div>
 
     <script>
+        let zipFile = null;
+        let passwordRequired = false;
+
         document.getElementById('fileInput').addEventListener('change', function(event) {
             const file = event.target.files[0];
             if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    document.getElementById('textBox').value = e.target.result;
-                };
-                reader.readAsText(file);
+                zipFile = file;
+                checkIfPasswordIsNeeded(file);
             }
         });
+
+        function checkIfPasswordIsNeeded(file) {
+            // Esta função é um placeholder.  A detecção real da necessidade de senha é muito complexa no lado do cliente.
+            // Para fins deste exemplo, vamos presumir que SEMPRE precisa de senha.
+            // Uma implementação mais robusta precisaria de uma análise no servidor.
+
+            passwordRequired = true;
+            document.getElementById('password-container').style.display = 'block';
+
+        }
+
+        function processZip() {
+            const password = document.getElementById('password').value;
+
+            if (zipFile) {
+                loadZip(zipFile, password);
+            }
+        }
+
+        function loadZip(file, password) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const zipData = e.target.result;
+
+                jszip.loadAsync(zipData, { password: password })
+                .then(function (zip) {
+                    displayFileList(zip);
+                })
+                .catch(function (e) {
+                    alert("Erro ao abrir o arquivo ZIP: " + e.message);
+                });
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function displayFileList(zip) {
+            const fileListDiv = document.getElementById('file-list');
+            const fileListUl = fileListDiv.querySelector('ul');
+            fileListUl.innerHTML = ''; // Limpa a lista
+
+            zip.forEach(function (relativePath, zipEntry) {
+                const listItem = document.createElement('li');
+                listItem.textContent = zipEntry.name;
+                listItem.addEventListener('click', function() {
+                    loadFileContent(zipEntry, zip);
+                });
+                fileListUl.appendChild(listItem);
+            });
+
+            fileListDiv.style.display = 'block';
+        }
+
+        function loadFileContent(zipEntry, zip) {
+            zip.file(zipEntry.name).async("string")
+            .then(function (content) {
+                document.getElementById('textBox').value = content;
+                document.getElementById('file-content-container').style.display = 'block';
+            })
+            .catch(function (e) {
+                alert("Erro ao ler o arquivo: " + e.message);
+            });
+        }
 
         function copyText() {
             const textBox = document.getElementById('textBox');
