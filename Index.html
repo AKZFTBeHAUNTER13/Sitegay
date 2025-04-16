@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leitor de Arquivos</title>
+    <title>Leitor e Visualizador de Texto</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -12,7 +12,7 @@
             text-align: center;
             margin: 0;
             padding: 20px;
-            overflow-x: hidden;
+            overflow-x: hidden; /* Evita scroll horizontal */
         }
 
         h2 {
@@ -22,14 +22,14 @@
         /* Estilos para a barra lateral */
         .sidebar {
             height: 100%;
-            width: 0;
+            width: 0; /* Começa fechada */
             position: fixed;
             z-index: 1;
             top: 0;
             left: 0;
             background-color: #1e1e1e;
             overflow-x: hidden;
-            transition: 0.5s;
+            transition: 0.5s; /* Animação suave */
             padding-top: 60px;
             text-align: left;
             box-shadow: 5px 0 15px rgba(0, 0, 0, 0.3);
@@ -67,7 +67,11 @@
             border: none;
             border-radius: 5px;
             margin-bottom: 20px;
-            transition: background-color 0.3s;
+            position: fixed; /* Fixa o botão */
+            top: 15px;
+            left: 15px;
+            z-index: 2; /* Garante que fique acima da sidebar quando fechada */
+            transition: background-color 0.3s, margin-left .5s; /* Anima junto com o main */
         }
 
         .openbtn:hover {
@@ -75,8 +79,9 @@
         }
 
         #main {
-            transition: margin-left .5s;
+            transition: margin-left .5s; /* Animação suave do conteúdo principal */
             padding: 16px;
+            padding-top: 70px; /* Espaço para o botão fixo */
         }
 
         /* Estilos para o container principal */
@@ -91,9 +96,10 @@
         }
 
         input[type="file"] {
-            display: none;
+            display: none; /* Esconde o input padrão */
         }
 
+        /* Botão customizado para upload */
         .custom-file-upload {
             background: #9b59b6;
             color: white;
@@ -103,6 +109,7 @@
             display: inline-block;
             font-size: 16px;
             transition: 0.3s;
+            margin-bottom: 10px; /* Espaçamento */
         }
 
         .custom-file-upload:hover {
@@ -110,8 +117,8 @@
         }
 
         textarea {
-            width: 100%;
-            height: 300px;
+            width: calc(100% - 20px); /* Ajusta largura considerando padding */
+            height: 350px; /* Aumenta um pouco a altura */
             margin-top: 15px;
             padding: 10px;
             font-size: 16px;
@@ -119,7 +126,8 @@
             color: white;
             border: none;
             border-radius: 5px;
-            resize: none;
+            resize: vertical; /* Permite redimensionar verticalmente */
+            box-sizing: border-box; /* Inclui padding na largura/altura */
         }
 
         .btn {
@@ -139,16 +147,16 @@
         }
 
         .btn:active {
-            transform: scale(0.95);
+            transform: scale(0.95); /* Efeito de clique */
         }
 
         .fade {
-            animation: fadeIn 0.3s ease-in-out;
+            animation: fadeIn 0.5s ease-in-out; /* Animação suave */
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* Estilos para a lista de arquivos */
@@ -157,31 +165,32 @@
             text-align: left;
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 10px; /* Espaçamento entre itens */
         }
 
         .file-item {
             background-color: #2c2c2c;
-            padding: 10px;
+            padding: 10px 15px;
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s, transform 0.2s;
-            flex: 1 1 150px;
+            flex: 1 1 150px; /* Flexbox para layout responsivo */
             text-align: center;
             color: white;
             text-decoration: none;
             min-width: 150px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            word-break: break-all; /* Quebra nomes longos */
         }
 
         .file-item:hover {
             background-color: #3d3d3d;
-            transform: translateY(-3px);
+            transform: translateY(-3px); /* Efeito hover */
         }
 
         /* Estilos para a visualização do arquivo */
         #fileViewer {
-            display: none;
+            display: none; /* Começa escondido */
             margin-top: 20px;
         }
          #fileViewer h3 {
@@ -189,7 +198,7 @@
             margin-bottom: 10px;
         }
 
-        /* Cor roxa para links */
+        /* Cor roxa para links gerais */
         a {
             color: #9b59b6;
             text-decoration: none;
@@ -200,9 +209,28 @@
             color: #8e44ad;
         }
 
-        /* Estilos para seção de arquivo único*/
-        #singleFileSection {
-            display: none;
+        /* Estilos para seção de arquivo único e link */
+        #singleFileSection, #linkSection {
+            display: none; /* Começam escondidos */
+        }
+
+        /* Estilo para o input de URL */
+         #linkInput {
+            width: calc(100% - 22px); /* Largura ajustada */
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #2c2c2c;
+            color: white;
+            border: 1px solid #444; /* Borda sutil */
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        #linkStatus {
+            margin-top: 15px;
+            color: #aaa;
+            font-size: 14px;
+            min-height: 20px; /* Para evitar pulos no layout */
         }
     </style>
 </head>
@@ -210,17 +238,21 @@
 
     <div id="mySidebar" class="sidebar">
         <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">×</a>
-        <a href="#" onclick="showSection('folderSection')">Pasta de Arquivos</a>
-        <a href="#" onclick="showSection('singleFileSection')">Arquivo Único</a>
+        <a href="#" onclick="showSection('folderSection'); closeNav();">Pasta de Arquivos</a>
+        <a href="#" onclick="showSection('singleFileSection'); closeNav();">Arquivo Único</a>
+        <a href="#" onclick="showSection('linkSection'); closeNav();">Texto de Link</a> {/* Novo Link */}
     </div>
 
     <div id="main">
-        <button class="openbtn" onclick="openNav()">☰ Abrir Menu</button>
-        <h2>Leitor de Arquivos de Texto</h2>
+        {/* Botão movido para fora do main para posicionamento fixo */}
+        <button class="openbtn" onclick="openNav()">☰</button>
 
-        <section id="folderSection" style="display: none;">
+        <h2>Leitor e Visualizador de Texto</h2>
+
+        {/* Seção para selecionar pasta */}
+        <section id="folderSection">
             <div class="container fade">
-                <h3>Selecione a Pasta</h3>
+                <h3>Selecione a Pasta com Arquivos .txt</h3>
                 <label for="folderInput" class="custom-file-upload">Selecionar Pasta</label>
                 <input type="file" id="folderInput" webkitdirectory directory multiple>
 
@@ -230,101 +262,259 @@
             </div>
         </section>
 
+        {/* Seção para selecionar arquivo único */}
         <section id="singleFileSection">
             <div class="container fade">
-                <h3>Enviar Arquivo de Texto</h3>
+                <h3>Selecione um Arquivo de Texto (.txt)</h3>
                 <label for="fileInput" class="custom-file-upload">Selecionar Arquivo</label>
                 <input type="file" id="fileInput" accept=".txt">
             </div>
         </section>
 
+        {/* Nova Seção para Colar Link */}
+        <section id="linkSection">
+            <div class="container fade">
+                <h3>Colar Link do Arquivo de Texto</h3>
+                <input type="url" id="linkInput" placeholder="https://exemplo.com/arquivo.txt">
+                <button class="btn" id="fetchLinkBtn" onclick="fetchLinkContent()">Buscar Conteúdo</button>
+                <p id="linkStatus"></p> {/* Para mensagens de status/erro */}
+            </div>
+        </section>
+
+        {/* Seção para visualizar o conteúdo */}
         <section id="fileViewer" class="container fade">
             <h3>Conteúdo do Arquivo</h3>
             <textarea id="fileContent" readonly></textarea>
             <button class="btn" onclick="copyText()">Copiar Texto</button>
+            <button class="btn" onclick="clearViewer()">Limpar</button>
         </section>
     </div>
 
     <script>
+        const sidebar = document.getElementById("mySidebar");
+        const mainContent = document.getElementById("main");
+        const openMenuBtn = document.querySelector(".openbtn"); // Seleciona o botão de abrir
+
         function openNav() {
-            document.getElementById("mySidebar").style.width = "250px";
-            document.getElementById("main").style.marginLeft = "250px";
+            sidebar.style.width = "250px";
+            mainContent.style.marginLeft = "250px";
+            openMenuBtn.style.marginLeft = "250px"; // Move o botão junto
         }
 
         function closeNav() {
-            document.getElementById("mySidebar").style.width = "0";
-            document.getElementById("main").style.marginLeft= "0";
+            sidebar.style.width = "0";
+            mainContent.style.marginLeft= "0";
+            openMenuBtn.style.marginLeft = "0"; // Retorna o botão
         }
 
        function showSection(sectionId) {
             const sections = document.querySelectorAll('section');
-            sections.forEach(section => section.style.display = 'none');
+            sections.forEach(section => {
+                if (section.id !== 'fileViewer') { // Não esconde o visualizador
+                    section.style.display = 'none';
+                }
+            });
 
-            document.getElementById(sectionId).style.display = 'block';
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.style.display = 'block';
+                // Limpa o visualizador se estiver mostrando uma seção de input
+                if (sectionId !== 'fileViewer') {
+                    clearViewer(false); // Limpa sem scroll
+                }
+                 // Rola suavemente para a seção aberta, se necessário
+                // window.scrollTo({ top: targetSection.offsetTop - 80, behavior: 'smooth' });
+            }
+            // Fecha a sidebar ao selecionar uma opção (opcional, mas melhora UX)
+            // closeNav(); // Movido para o onclick dos links
         }
 
-        // --- Folder Section ---
-        const folderInput = document.getElementById('folderInput');
+        // --- Variáveis Globais para Elementos Comuns ---
         const fileListDiv = document.getElementById('fileList');
         const fileViewerSection = document.getElementById('fileViewer');
         const fileContentTextarea = document.getElementById('fileContent');
+        const folderInput = document.getElementById('folderInput');
+        const singleFileInput = document.getElementById('fileInput');
+        const linkInput = document.getElementById('linkInput');
+        const linkStatus = document.getElementById('linkStatus');
 
+        // --- Seção da Pasta ---
         folderInput.addEventListener('change', function(event) {
             const files = event.target.files;
-            fileListDiv.innerHTML = '';
-            fileViewerSection.style.display = 'none';
+            fileListDiv.innerHTML = ''; // Limpa lista anterior
+            clearViewer(false); // Limpa visualizador
 
             if (files.length > 0) {
+                let foundTxt = false;
                 for (let i = 0; i < files.length; i++) {
                     const file = files[i];
-                    if (file.name.endsWith('.txt')) {
+                    // Verifica se é .txt (case-insensitive)
+                    if (file.name.toLowerCase().endsWith('.txt')) {
+                        foundTxt = true;
                         const fileItem = document.createElement('a');
                         fileItem.classList.add('file-item');
                         fileItem.textContent = file.name;
-                        fileItem.href = "#";
-                        fileItem.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            loadFileContent(file);
-                        });
+                        fileItem.href = "#"; // Evita navegação padrão
+                        // Usa closure para capturar o 'file' correto
+                        fileItem.addEventListener('click', (function(fileToLoad) {
+                            return function(e) {
+                                e.preventDefault(); // Previne o scroll para #
+                                loadFileContent(fileToLoad);
+                            };
+                        })(file));
                         fileListDiv.appendChild(fileItem);
                     }
+                }
+                 if (!foundTxt) {
+                    fileListDiv.innerHTML = '<p style="color: #aaa;">Nenhum arquivo .txt encontrado na pasta selecionada.</p>';
+                }
+            } else {
+                 fileListDiv.innerHTML = '<p style="color: #aaa;">Nenhuma pasta selecionada.</p>';
+            }
+        });
+
+        // --- Seção de Arquivo Único ---
+        singleFileInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            clearViewer(false); // Limpa visualizador
+            if (file) {
+                // Verifica se é .txt antes de carregar
+                 if (file.name.toLowerCase().endsWith('.txt')) {
+                    loadFileContent(file);
+                } else {
+                    alert("Por favor, selecione um arquivo .txt");
+                    singleFileInput.value = ''; // Limpa a seleção inválida
                 }
             }
         });
 
-        // --- Single File Section ---
-        const singleFileInput = document.getElementById('fileInput');
-        singleFileInput.addEventListener('change', function(event) {
-            const file = event.target.files[0];
+        // --- Seção de Link ---
+        async function fetchLinkContent() {
+            const url = linkInput.value.trim();
+            linkStatus.textContent = ''; // Limpa status anterior
+            clearViewer(false); // Limpa visualizador
 
-            if (file) {
-                loadFileContent(file); // Use existing loadFileContent
+            if (!url) {
+                linkStatus.textContent = 'Por favor, insira uma URL.';
+                return;
             }
-        });
 
-        // --- Load File Content ---
+            // Adiciona http:// ou https:// se não estiver presente (simplificado)
+            let fetchUrl = url;
+            if (!fetchUrl.startsWith('http://') && !fetchUrl.startsWith('https://')) {
+                 // Tenta https por padrão, mas isso pode não ser ideal
+                fetchUrl = 'https://' + fetchUrl;
+                console.warn(`Adicionado "https://" à URL: ${fetchUrl}`);
+                // Seria melhor validar a URL mais robustamente
+            }
+
+
+            linkStatus.textContent = 'Buscando conteúdo...';
+            fileViewerSection.style.display = 'none'; // Esconde enquanto carrega
+
+            try {
+                // Usar um proxy CORS pode ser necessário para muitos sites.
+                // Exemplo (requer um servidor proxy configurado):
+                // const proxyUrl = 'https://seu-proxy-cors.com/?url=';
+                // const response = await fetch(proxyUrl + encodeURIComponent(fetchUrl));
+
+                const response = await fetch(fetchUrl);
+
+                if (!response.ok) {
+                    // Trata erros HTTP (404, 500, etc.)
+                    throw new Error(`Erro HTTP: ${response.status} ${response.statusText}`);
+                }
+
+                // Verifica o tipo de conteúdo (opcional, mas recomendado)
+                const contentType = response.headers.get('content-type');
+                if (contentType && !contentType.includes('text')) {
+                     console.warn(`Tipo de conteúdo não parece ser texto: ${contentType}`);
+                     // Decide se quer prosseguir ou mostrar erro
+                     // throw new Error('O link não parece ser um arquivo de texto.');
+                }
+
+                const text = await response.text();
+                fileContentTextarea.value = text;
+                fileViewerSection.style.display = 'block'; // Mostra o visualizador
+                linkStatus.textContent = 'Conteúdo carregado com sucesso!';
+                 window.scrollTo({ top: fileViewerSection.offsetTop - 80, behavior: 'smooth' });
+
+
+            } catch (error) {
+                console.error('Erro ao buscar conteúdo do link:', error);
+                linkStatus.textContent = `Erro ao buscar: ${error.message}. Verifique a URL e as permissões CORS do servidor.`;
+                // Informa sobre CORS
+                if (error instanceof TypeError && error.message.toLowerCase().includes('fetch')) { // Erro de rede/CORS comum
+                     linkStatus.textContent += ' Isso pode ser um problema de CORS ou a rede falhou.';
+                }
+                 fileViewerSection.style.display = 'none'; // Mantém escondido se deu erro
+            }
+        }
+
+
+        // --- Funções Comuns ---
         function loadFileContent(file) {
             const reader = new FileReader();
             reader.onload = function(e) {
                 fileContentTextarea.value = e.target.result;
-                fileViewerSection.style.display = 'block';
-                window.scrollTo({ top: fileViewerSection.offsetTop, behavior: 'smooth' });
+                fileViewerSection.style.display = 'block'; // Mostra o visualizador
+                // Rola suavemente para o visualizador
+                window.scrollTo({ top: fileViewerSection.offsetTop - 80, behavior: 'smooth' });
             };
-            reader.readAsText(file);
+             reader.onerror = function(e) {
+                console.error("Erro ao ler o arquivo:", e);
+                alert("Ocorreu um erro ao tentar ler o arquivo.");
+                clearViewer(false);
+            }
+            reader.readAsText(file); // Lê como texto
         }
 
         function copyText() {
-            const textBox = document.getElementById('fileContent');
-            textBox.select();
-            document.execCommand('copy');
+            if (!fileContentTextarea.value) return; // Não faz nada se vazio
 
-            const btn = document.querySelector('#fileViewer .btn');
-            btn.innerText = "Copiado!";
-            setTimeout(() => btn.innerText = "Copiar Texto", 1500);
+            const textBox = document.getElementById('fileContent');
+            textBox.select(); // Seleciona o texto
+             textBox.setSelectionRange(0, 99999); // Para mobile
+
+            try {
+                 const successful = document.execCommand('copy');
+                 const msg = successful ? 'Texto copiado!' : 'Falha ao copiar';
+                 const copyBtn = document.querySelector('#fileViewer .btn:nth-of-type(1)'); // Primeiro botão
+                 if(copyBtn) {
+                     const originalText = copyBtn.innerText;
+                     copyBtn.innerText = msg;
+                     setTimeout(() => { copyBtn.innerText = originalText; }, 1500);
+                 }
+            } catch (err) {
+                 console.error('Erro ao copiar texto: ', err);
+                 alert('Não foi possível copiar o texto. Seu navegador pode não suportar esta ação.');
+            }
+             window.getSelection().removeAllRanges(); // Desseleciona o texto
         }
 
-        //Initial Setup
-        showSection('singleFileSection');
+         function clearViewer(scrollToTop = true) {
+            fileContentTextarea.value = '';
+            fileViewerSection.style.display = 'none';
+            // Limpa seleção de arquivos também para evitar recarregamento acidental
+            // folderInput.value = ''; // Causa problemas com seleção de pasta
+            singleFileInput.value = '';
+            linkInput.value = ''; // Limpa o input de link também
+            if(linkStatus) linkStatus.textContent = ''; // Limpa status do link
+
+            if (scrollToTop) {
+                 // Rola para o topo da página
+                 // window.scrollTo({ top: 0, behavior: 'smooth' });
+                 // Ou rola para o início da seção ativa, se houver uma
+            }
+         }
+
+
+        // --- Configuração Inicial ---
+        // Mostra a seção de arquivo único por padrão ao carregar
+        document.addEventListener('DOMContentLoaded', () => {
+             showSection('singleFileSection');
+        });
+
     </script>
 
 </body>
